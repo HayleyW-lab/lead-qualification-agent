@@ -1,9 +1,12 @@
 import csv
+import sys
 import time
 from datetime import datetime
 from lead_agent import qualify_lead
 
-INPUT_FILE = "leads.csv"
+# Usage: python batch_process.py [input_file]
+# Defaults to leads.csv if no argument is given
+INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else "leads.csv"
 OUTPUT_FILE = f"results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
 # Free tier rate limit is 10 requests/minute on gemini-3.5-flash.
@@ -37,7 +40,7 @@ OUTPUT_COLUMNS = [
 
 
 def load_leads(filepath):
-    """Reads leads.csv and returns a list of dicts with 'source' and 'text'."""
+    """Reads a leads CSV and returns a list of dicts with 'source' and 'text'."""
     with open(filepath, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         return list(reader)

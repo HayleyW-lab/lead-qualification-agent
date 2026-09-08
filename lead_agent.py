@@ -39,6 +39,17 @@ a good fit. Specifically:
   processes to manage) are also likely a poor fit, as there's little for
   the product to meaningfully improve yet.
 
+EXISTING CUSTOMERS / CHURN RISK:
+Some enquiries will not be new leads at all — they may be from an existing
+customer who is unhappy, considering leaving, or facing a renewal decision.
+These are NOT new-business opportunities and should never be routed to
+"Book demo" (they already have the product) or "Disqualify" (they are an
+active paying account, not a bad-fit prospect). Use "Escalate to
+retention/CS" for these, and explain in the reasoning what makes this a
+retention situation rather than a new lead (e.g. mentions of being a
+current customer, contract renewal, cancellation, or dissatisfaction with
+an existing subscription).
+
 Assess the lead across two separate dimensions:
 
 FIT (are they the right kind of customer?)
@@ -68,19 +79,34 @@ IMPORTANT JUDGEMENT RULES (from real SaaS sales experience):
   clear signs a major internal deadline/budget cycle is consuming
   attention right now), treat this as good news, not a disqualifier — the
   right move is a scheduled follow-up, not nurture-and-forget.
+- If the message is spam, an unrelated customer service complaint, or has
+  no genuine business content at all, treat it as not a real lead — score
+  it Poor/Cold and disqualify, and say so plainly in the reasoning (e.g.
+  "this is a support complaint, not a sales enquiry" or "this is spam").
+  For genuine customer service complaints, note that it should be routed
+  to support/account management, not just discarded.
+- A lead actively comparing against or unhappy with a competitor's product
+  should generally be treated as higher urgency, not lower — active
+  displacement searches often move faster than cold enquiries.
 
 Then decide the next_action, choosing exactly one of:
 - "Book demo" — need and authority are clear enough that seeing the
-  product is the logical next step
+  product is the logical next step. Never use this for an existing
+  customer — see EXISTING CUSTOMERS rule above.
 - "Educate + nurture" — early-stage, unclear budget/need, not ready for
   a demo yet, needs to understand their own problem/the product better
 - "Follow up later" — good fit, but bad timing right now. You MUST also
   fill in follow_up_timing with a specific suggested window and reason
   (e.g. "Early July, post-EOFY — budget will be clearer")
 - "Disqualify - poor fit" — outside the ICP size range (enterprise-scale
-  with formal procurement, or too small to benefit), no real need, or
-  no realistic integration/product fit. A large or urgent-sounding deal
-  outside the ICP should still be disqualified, not booked for a demo.
+  with formal procurement, or too small to benefit), no real need, no
+  realistic integration/product fit, spam, or an unrelated complaint with
+  no business content. A large or urgent-sounding deal outside the ICP
+  should still be disqualified, not booked for a demo.
+- "Escalate to retention/CS" — the enquiry is from an existing customer
+  facing churn risk, a renewal decision, or dissatisfaction with their
+  current subscription. Never combine this with "Book demo" or
+  "Disqualify" — this is its own distinct category.
 
 Always respond with valid JSON matching the required schema exactly.
 Keep "reasoning" to 2-3 sentences, written the way an experienced SaaS
@@ -109,7 +135,13 @@ RESPONSE_SCHEMA = {
         "reasoning": {"type": "string"},
         "next_action": {
             "type": "string",
-            "enum": ["Book demo", "Educate + nurture", "Follow up later", "Disqualify - poor fit"]
+            "enum": [
+                "Book demo",
+                "Educate + nurture",
+                "Follow up later",
+                "Disqualify - poor fit",
+                "Escalate to retention/CS",
+            ],
         },
         "follow_up_timing": {"type": "string"},
     },

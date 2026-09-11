@@ -129,7 +129,51 @@ The agent's underlying judgement was correct — it recognised an existing custo
 
 ---
 
+## Phase 3 — A real interface (Streamlit)
+
+**Goal:** Turn the project from "a script someone has to run to see it work" into something anyone can open, use, and actually try for themselves — a genuine portfolio-demo-ready interface, not the minimum viable option.
+
+**Decision — CLI vs. web app:** A basic command-line interface would have been faster to build, but a CLI can't be seen, screenshotted, or shared as a link — it relies entirely on someone trusting a written description. A web interface (Streamlit) was chosen instead specifically because it's visible, demoable, and eventually deployable — a recruiter can be sent a real link and try qualifying a lead themselves, rather than reading about it.
+
+Built in deliberate order — single-lead qualification fully working first, then batch upload layered on — so there was a genuinely working, demoable app early rather than a pile of half-built features with nothing to click through until the very end.
+
+### 1. Environment
+
+- Installed Streamlit (`pip install streamlit`), confirmed with a minimal "hello world" test app before building anything real
+- Learned Streamlit's core mental model: it re-runs the _entire script_ top to bottom on every interaction (every button click, every dropdown change) — which is why `st.session_state` is essential for anything that needs to persist (a result, a growing history list) across those re-runs
+
+### 2. Single-lead qualification (`app.py`)
+
+- A form (text area + source dropdown + submit button) wired directly to the existing `qualify_lead()` function — no new agent logic, just a visual wrapper around what was already built and tested
+- Colour-coded result badges (green/amber/red for fit; red/amber/blue for readiness — blue for "Cold" specifically chosen so a low-urgency lead doesn't read as a failure) — built as custom HTML snippets since Streamlit has no built-in coloured-badge component
+- A collapsible full signal breakdown (fit signals and BANT signals) so the main view stays clean but nothing is hidden
+- Empty-input handling — submitting a blank form shows a warning rather than wasting an API call or crashing
+
+### 3. Session history and dashboard
+
+- Every qualified lead is appended to `st.session_state.history`, storing a short text preview (not the full lead) so the table stays readable
+- A live dashboard summary (`st.metric()` widgets) counts leads by readiness score, calculated fresh from whatever's actually in the session — no hardcoded categories
+- A sortable results table (`st.dataframe()`) and a "Clear history" button to reset for a fresh demo session
+
+### 4. Retry logic ported from batch_process.py
+
+- The interface initially had no retry handling — a live test surfaced a real `503 UNAVAILABLE` (Gemini temporarily overloaded), which failed immediately with a red error box and no retry
+- Fixed by porting the same retry-with-backoff logic already proven in `batch_process.py` into a shared `qualify_with_retry()` function, now used by both single-lead and batch flows — a brief overload now means a longer spinner, not a failed submission
+
+### 5. Batch CSV upload
+
+- A second tab ("Batch Upload") alongside "Single Lead", added once the single-lead flow was solid — this is Streamlit's tabbed layout, chosen so the interface stays organised rather than becoming one long scrolling page as features were added
+- File uploader validates the CSV has the expected `source` and `text` columns before allowing processing, with a preview of the first few rows
+- A live progress bar during processing (mirrors the terminal progress lines from `batch_process.py`, but in-browser)
+- Same dashboard-summary pattern as single-lead history, plus a `st.download_button()` so results can be saved as a CSV directly from the browser — no digging through local folders for a timestamped file
+
+**Tested against:** the original 5-lead `leads.csv` batch, uploaded and processed entirely through the browser — 5/5 succeeded, dashboard correctly summarised the mix (1 Hot, 2 Warm, 2 Cold), results table and CSV download both confirmed working.
+
+**Outcome:** Phase 3 complete. The project is now a fully working, visually polished, self-contained web app — usable by someone with zero coding knowledge, running locally. Every backend fix from Phases 1 and 2 (ICP scoring, churn-risk escalation, retry handling) is faithfully surfaced through the interface, confirmed by testing the same known scenarios (the EOFY referral, the enterprise mismatch, the churn-risk call) through the UI rather than just the terminal.
+
+---
+
 ## What's next
 
-- **Phase 3:** a simple interface (CLI or lightweight UI) so someone other than the developer can try it; a sample dataset bundled in the repo for demoing without an API key
+- **Deployment:** publish the app via Streamlit Community Cloud so it's a live, shareable link rather than something that only runs locally
 - **Phase 4:** integration into the portfolio site (ahayleyoriginal.dev), alongside KiwiPool and WriteHero
